@@ -1,0 +1,27 @@
+# Entornos Virtuales de Python
+venv/
+env/
+.venv/
+
+# Archivos compilados y caché de Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Variables de Entorno y Secretos (¡Nunca subir contraseñas!)
+.env
+
+# Archivos de Base de Datos locales (por si acaso)
+*.sqlite3
+*.db
+
+# Carpetas de datos de Docker
+db_data/
+mysql-data/
+
+# Archivos del Sistema Operativo y Editores de Código
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

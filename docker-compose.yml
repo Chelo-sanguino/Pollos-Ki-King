@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "5005:5000" # Mapeado al 5005 para evitar el error de permisos en el 5000
+    environment:
+      - DATABASE_URL=mysql+pymysql://root:kiking_pwd@db:3306/kiking_db
+      - TZ=America/La_Paz
+    volumes:
+      - ./backend:/app/backend
+      - ./frontend:/app/frontend
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: kiking_pwd
+      MYSQL_DATABASE: kiking_db
+      TZ: America/La_Paz
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pkiking_pwd"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  db_data:
