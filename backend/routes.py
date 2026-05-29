@@ -150,10 +150,17 @@ def dibujar_contenido_ticket(c, venta, ancho, alto, modo="cliente"):
     c.drawCentredString(ancho/2, y, titulo)
     
     y -= 5 * mm
+    
+    if modo == "cocina":
+        c.setFont("Helvetica", 9)
+        c.drawCentredString(ancho/2, y, "[ ] DELIVERY  [ ] LLEVAR  [ ] LOCAL")
+        y -= 5 * mm
+
     c.setFont("Helvetica-Bold", 11 if modo == "cocina" else 8)
-    c.drawCentredString(ancho/2, y, f"Pedido #: {venta.numero_pedido}")
+    c.drawCentredString(ancho/2, y, f"Ticket Nro: {venta.numero_pedido}")
     
     y -= 5 * mm
+
     c.setFont("Helvetica", 8)
     c.drawString(5 * mm, y, f"Fecha: {venta.fecha_hora.strftime('%d/%m/%Y %H:%M')}")
     y -= 4 * mm
@@ -163,7 +170,7 @@ def dibujar_contenido_ticket(c, venta, ancho, alto, modo="cliente"):
     for detalle in venta.detalles:
         prod = Producto.query.get(detalle.producto_id)
         
-        texto_prod = f"{detalle.cantidad}x {prod.nombre}"
+        texto_prod = f"{detalle.cantidad} {prod.nombre}"
         fuente_p = "Helvetica-Bold"
         # MEJORA: Letra más grande para cocina
         tamano_p = 11 if modo == "cocina" else 9
@@ -211,12 +218,19 @@ def dibujar_contenido_ticket(c, venta, ancho, alto, modo="cliente"):
         y -= 5 * mm
         c.setFont("Helvetica-Bold", 8)
         c.drawString(5 * mm, y, f"PAGO: {venta.metodo_pago.upper()}")
-        
-        y -= 8 * mm
+        y -= 4 * mm
+        c.setFont("Helvetica", 7)
+        c.drawCentredString(ancho/2, y, "Av. Gamoneda / Calle Arturo Molina")
+        y -= 3.5 * mm
+        c.drawCentredString(ancho/2, y, "y Circunvalación N° 1559")
+        y -= 4 * mm
+        c.setFont("Helvetica-Bold", 8)
+        c.drawCentredString(ancho/2, y, "Pedidos: 70231349")
+        y -= 5 * mm
         c.setFont("Helvetica-Oblique", 7)
         c.drawCentredString(ancho/2, y, "¡Gracias por su preferencia!")
     else:
-        y -= 5 * mm
+        y -= 8 * mm
         c.setFont("Helvetica-Bold", 9)
         c.drawCentredString(ancho/2, y, "--- FIN DE ORDEN ---")
 

@@ -1,13 +1,28 @@
 let carrito = [];
 let listaExtrasDisponibles = [];
-let itemIndexSeleccionado = null
+let itemIndexSeleccionado = null;
 let procesandoVenta = false;
+let todosLosProductos = [];
+let inventarioPresasCocidas = 0;
 
 document.addEventListener('DOMContentLoaded', () => {
     cargarProductos();
     cargarExtras();
     verificarEstadoCaja();
+    cargarInventarioPresas();
 });
+
+async function cargarInventarioPresas() {
+    try {
+        const res = await fetch('/api/inventario/pollo');
+        if (res.ok) {
+            const data = await res.json();
+            inventarioPresasCocidas = data.presas_cocidas || 0;
+        }
+    } catch (e) {
+        console.error("Error al cargar inventario de presas", e);
+    }
+}
 
 // 1. Cargar productos (product-card)
 async function cargarProductos() {
@@ -22,8 +37,11 @@ function filtrarProductos(categoria) {
     botones.forEach(btn => {
         btn.classList.remove('active', 'btn-yellow');
         btn.classList.add('btn-outline-warning');
+        if (btn.innerText.trim() === categoria || (categoria === 'Todas' && btn.innerText.trim() === 'Todas')) {
+            btn.classList.add('active', 'btn-yellow');
+            btn.classList.remove('btn-outline-warning');
+        }
     });
-    event.target.classList.add('active', 'btn-yellow');
 
     // 2. Filtrar y Renderizar
     if (categoria === 'Todas') {
@@ -98,6 +116,27 @@ function agregarAlCarrito(id, nombre, precio, categoria) {
     if (producto && producto.usa_stock && cantidadActual + 1 > producto.stock_actual) {
         Swal.fire({icon: 'warning', title: 'Stock Insuficiente', text: `Solo hay ${producto.stock_actual} unidades disponibles.`, confirmButtonColor: '#FACC15'});
         return;
+    }
+
+    if (producto && producto.presas_requeridas > 0) {
+        let presasUsadasEnCarrito = 0;
+        carrito.forEach(item => {
+            const p = todosLosProductos.find(x => x.id === item.id);
+            if (p && p.presas_requeridas > 0) {
+                presasUsadasEnCarrito += (item.cantidad * p.presas_requeridas);
+            }
+        });
+        
+        if (presasUsadasEnCarrito + producto.presas_requeridas > inventarioPresasCocidas) {
+            // Nota: Es solo una advertencia, no bloquea la venta.
+            Swal.fire({
+                icon: 'warning', 
+                title: 'Atención: Presas Insuficientes', 
+                text: `El inventario registra solo ${inventarioPresasCocidas} presas cocidas. Se ha agregado al pedido, pero el inventario quedará en negativo.`, 
+                confirmButtonColor: '#E62E2D',
+                timer: 4000
+            });
+        }
     }
 
     if (index !== -1) {
@@ -253,6 +292,7 @@ async function finalizarVenta() {
                 carrito = [];
                 renderizarCarrito();
                 cargarProductos(); // Actualizar el stock en la pantalla
+                cargarInventarioPresas(); // Actualizar inventario de presas en RAM
             }, 100);
 
         } else {
