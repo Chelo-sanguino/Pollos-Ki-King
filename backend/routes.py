@@ -220,9 +220,9 @@ def dibujar_contenido_ticket(c, venta, ancho, alto, modo="cliente"):
         c.drawString(5 * mm, y, f"PAGO: {venta.metodo_pago.upper()}")
         y -= 4 * mm
         c.setFont("Helvetica", 7)
-        c.drawCentredString(ancho/2, y, "Av. Gamoneda / Calle Arturo Molina")
+        c.drawCentredString(ancho/2, y, "Av Gamoneda No1559 entre")
         y -= 3.5 * mm
-        c.drawCentredString(ancho/2, y, "y Circunvalación N° 1559")
+        c.drawCentredString(ancho/2, y, "Av. Circunvalación y Arturo Molina")
         y -= 4 * mm
         c.setFont("Helvetica-Bold", 8)
         c.drawCentredString(ancho/2, y, "Pedidos: 70231349")
