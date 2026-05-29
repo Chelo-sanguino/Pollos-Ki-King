@@ -222,7 +222,7 @@ def dibujar_contenido_ticket(c, venta, ancho, alto, modo="cliente"):
         c.setFont("Helvetica", 7)
         c.drawCentredString(ancho/2, y, "Av Gamoneda No1559 entre")
         y -= 3.5 * mm
-        c.drawCentredString(ancho/2, y, "Av. Circunvalación y Arturo Molina")
+        c.drawCentredString(ancho/2, y, "Av. Circunvalación y C/Arturo Molina")
         y -= 4 * mm
         c.setFont("Helvetica-Bold", 8)
         c.drawCentredString(ancho/2, y, "Pedidos: 70231349")
