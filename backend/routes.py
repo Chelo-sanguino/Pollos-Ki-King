@@ -114,8 +114,8 @@ def imprimir_ticket(venta_id):
         return jsonify({"error": "Venta no encontrada"}), 404
 
     ancho = 58 * mm
-    alto_cliente = max(60, 65 + (len(venta.detalles) * 8)) * mm 
-    alto_cocina = max(55, 30 + (len(venta.detalles) * 8)) * mm 
+    alto_cliente = max(65, 65 + (len(venta.detalles) * 8)) * mm 
+    alto_cocina = max(65, 30 + (len(venta.detalles) * 8)) * mm 
     
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer)
