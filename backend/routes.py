@@ -113,9 +113,9 @@ def imprimir_ticket(venta_id):
     if not venta:
         return jsonify({"error": "Venta no encontrada"}), 404
 
-    ancho = 58 * mm
-    alto_cliente = (85 + (len(venta.detalles) * 15)) * mm 
-    alto_cocina = (45 + (len(venta.detalles) * 14)) * mm 
+    ancho = 48 * mm
+    alto_cliente = (55 + (len(venta.detalles) * 6)) * mm 
+    alto_cocina = (22 + (len(venta.detalles) * 6)) * mm 
     
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer)
@@ -133,7 +133,7 @@ def imprimir_ticket(venta_id):
     return send_file(buffer, as_attachment=False, mimetype='application/pdf')
 
 def dibujar_contenido_ticket(c, venta, ancho, alto, modo="cliente"):
-    y = alto - 10 * mm
+    y = alto - 2 * mm
     import os
     from reportlab.lib.utils import simpleSplit
 
@@ -162,9 +162,9 @@ def dibujar_contenido_ticket(c, venta, ancho, alto, modo="cliente"):
     y -= 3 * mm
 
     c.setFont("Helvetica", 6)
-    c.drawString(5 * mm, y, f"Fecha: {venta.fecha_hora.strftime('%d/%m/%Y %H:%M')}")
+    c.drawString(2 * mm, y, f"Fecha: {venta.fecha_hora.strftime('%d/%m/%Y %H:%M')}")
     y -= 2.5 * mm
-    c.drawString(5 * mm, y, "-" * 35)
+    c.drawString(2 * mm, y, "-" * 40)
     y -= 3 * mm
 
     for detalle in venta.detalles:
@@ -175,19 +175,19 @@ def dibujar_contenido_ticket(c, venta, ancho, alto, modo="cliente"):
         # MEJORA: Letra mini para ahorrar papel
         tamano_p = 8 if modo == "cocina" else 7
         
-        ancho_texto = ancho - (22 * mm if modo == "cliente" else 5 * mm)
+        ancho_texto = ancho - (18 * mm if modo == "cliente" else 4 * mm)
         lineas = simpleSplit(texto_prod, fuente_p, tamano_p, ancho_texto)
         
         y_ini = y
         for linea in lineas:
             c.setFont(fuente_p, tamano_p)
-            c.drawString(5 * mm, y, linea)
+            c.drawString(2 * mm, y, linea)
             y -= 3 * mm
 
         if modo == "cliente":
             c.setFont("Helvetica-Bold", 7)
             # MEJORA: Alineación exacta del subtotal
-            c.drawRightString(ancho - 5 * mm, y_ini, f"{detalle.subtotal:.2f}")
+            c.drawRightString(ancho - 2 * mm, y_ini, f"{detalle.subtotal:.2f}")
 
         # Salsas y Extras
         if detalle.extras:
@@ -208,16 +208,16 @@ def dibujar_contenido_ticket(c, venta, ancho, alto, modo="cliente"):
 
     # Pie del Ticket
     if modo == "cliente":
-        c.drawString(5 * mm, y, "=" * 35)
+        c.drawString(2 * mm, y, "=" * 40)
         y -= 3 * mm
         c.setFont("Helvetica-Bold", 9) 
-        c.drawString(5 * mm, y, "TOTAL:")
-        c.drawRightString(ancho - 5 * mm, y, f"{venta.total:.2f} Bs.")
+        c.drawString(2 * mm, y, "TOTAL:")
+        c.drawRightString(ancho - 2 * mm, y, f"{venta.total:.2f} Bs.")
         
         # --- NUEVO: IMPRIMIR EL MÉTODO DE PAGO ---
         y -= 3 * mm
         c.setFont("Helvetica-Bold", 6)
-        c.drawString(5 * mm, y, f"PAGO: {venta.metodo_pago.upper()}")
+        c.drawString(2 * mm, y, f"PAGO: {venta.metodo_pago.upper()}")
         y -= 3 * mm
         c.setFont("Helvetica", 6)
         c.drawCentredString(ancho/2, y, "Av Gamoneda No1559 entre")
