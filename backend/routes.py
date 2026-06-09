@@ -111,7 +111,9 @@ def nueva_venta():
 def imprimir_ticket(venta_id):
     venta = Venta.query.get(venta_id)
     if not venta:
-        return jsonify({"error": "Venta no encontrada"}), 40    ancho = 58 * mm
+        return jsonify({"error": "Venta no encontrada"}), 404
+
+    ancho = 58 * mm
     alto_cliente = max(60, 65 + (len(venta.detalles) * 8)) * mm 
     alto_cocina = max(55, 30 + (len(venta.detalles) * 8)) * mm 
     
@@ -227,7 +229,7 @@ def dibujar_contenido_ticket(c, venta, ancho, alto, modo="cliente"):
     else:
         y -= 6 * mm
         c.setFont("Helvetica-Bold", 8)
-        c.drawCentredString(ancho/2, y, "--- FIN DE ORDEN ---")DEN ---")
+        c.drawCentredString(ancho/2, y, "--- FIN DE ORDEN ---")
 
 @api_bp.route('/stats/mensual', methods=['GET'])
 def estadisticas_mensuales():
