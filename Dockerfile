@@ -10,5 +10,5 @@ COPY frontend/ /app/frontend/
 
 WORKDIR /app/backend
 
-# Al iniciar, creamos las tablas, insertamos la data y arrancamos la app
-CMD sh -c "python init_db.py && python seed_menu.py && python seed_extras.py && python app.py"
+# Al iniciar, creamos las tablas y arrancamos la app (se removieron los seeders automáticos)
+CMD sh -c "python init_db.py && python app.py"

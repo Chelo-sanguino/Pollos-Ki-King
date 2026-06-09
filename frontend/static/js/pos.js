@@ -56,56 +56,34 @@ function renderizarProductos(lista) {
     const contenedor = document.getElementById('contenedor-productos');
     contenedor.innerHTML = '';
 
-    const palabrasVariante = [
-        'Super Doble 3XL', 'Junior Doble', 'Mediana Doble', 'Premiun Doble', 'Premium Doble',
-        'Junior', 'Mediana', 'Premiun', 'Premium', 'Simple', 'Doble', '750ml', '1 lt'
-    ];
+    const gridContainer = document.createElement('div');
+    // Grid para forzar exactamente 5 elementos por fila
+    gridContainer.style.cssText = 'display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; width: 100%; padding: 0 5px;';
 
-    const variantesOrdenadas = [...palabrasVariante].sort((a, b) => b.length - a.length);
+    lista.forEach(v => {
+        const div = document.createElement('div');
+        div.className = 'btn btn-outline-light p-2 d-flex align-items-center justify-content-center';
+        div.style.cssText = 'border-color: #242424; position: relative; height: 75px; border-radius: 8px; cursor: pointer; background: #1A1A1A; transition: all 0.2s;';
+        div.onclick = () => agregarAlCarrito(v.id, v.nombre, v.precio, v.categoria);
 
-    const familias = lista.reduce((acc, producto) => {
-        let nombreFamilia = producto.nombre;
-        let nombreVariante = 'ÚNICO';
-
-        for (let kw of variantesOrdenadas) {
-            if (producto.nombre.includes(kw)) {
-                nombreFamilia = producto.nombre.split(kw)[0].trim();
-                nombreVariante = kw;
-                if (!nombreFamilia) {
-                    nombreFamilia = producto.nombre;
-                    nombreVariante = 'SIMPLE';
-                }
-                break;
-            }
+        let stockHtml = '';
+        if (v.usa_stock) {
+            stockHtml = `<span class="badge ${v.stock_actual < 10 ? 'bg-danger text-white' : 'bg-info'} position-absolute" style="top: -5px; right: -5px; font-size: 0.75rem; padding: 4px 6px; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.5);">${v.stock_actual}</span>`;
         }
 
-        if (!acc[nombreFamilia]) acc[nombreFamilia] = [];
-        acc[nombreFamilia].push({ ...producto, labelVariante: nombreVariante });
-        return acc;
-    }, {});
-
-    for (const [nombre, variantes] of Object.entries(familias)) {
-        const filaFamilia = document.createElement('div');
-        filaFamilia.className = 'col-12 mb-4';
-
-        filaFamilia.innerHTML = `
-            <div class="family-section p-3 rounded-3" style="background: #1A1A1A; border-left: 4px solid #FACC15;">
-                <h5 class="text-warning Bebas Neue mb-3" style="letter-spacing: 2px;">${nombre.toUpperCase()}</h5>
-                <div class="d-flex flex-wrap gap-2">
-                    ${variantes.map(v => `
-                        <button class="btn btn-outline-light btn-sm flex-grow-1 p-3 d-flex flex-column align-items-center" 
-                                onclick="agregarAlCarrito(${v.id}, '${v.nombre}', ${v.precio}, '${v.categoria}')"
-                                style="min-width: 120px; border-color: #242424; position: relative;">
-                            ${v.usa_stock ? `<span class="badge ${v.stock_actual < 10 ? 'bg-danger text-white' : 'bg-info'} position-absolute" style="top: -5px; right: -5px; font-size: 1rem; padding: 6px 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.5);">Stock: ${v.stock_actual}</span>` : ''}
-                            <span class="fw-bold mt-3" style="font-size: 0.85rem;">${v.labelVariante.toUpperCase()}</span>
-                            <span class="text-warning mt-1">${v.precio.toFixed(2)} Bs.</span>
-                        </button>
-                    `).join('')}
-                </div>
-            </div>
+        div.innerHTML = `
+            ${stockHtml}
+            <span class="fw-bold text-center text-warning" style="font-size: 0.85rem; line-height: 1.2; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${v.nombre.toUpperCase()}</span>
         `;
-        contenedor.appendChild(filaFamilia);
-    }
+        
+        // Hover effect for better UX
+        div.onmouseover = () => { div.style.background = '#FACC15'; div.querySelector('.text-warning').classList.replace('text-warning', 'text-dark'); };
+        div.onmouseout = () => { div.style.background = '#1A1A1A'; div.querySelector('.text-dark').classList.replace('text-dark', 'text-warning'); };
+
+        gridContainer.appendChild(div);
+    });
+
+    contenedor.appendChild(gridContainer);
 }
 // 2. Lógica para manejar el pedido
 function agregarAlCarrito(id, nombre, precio, categoria) {

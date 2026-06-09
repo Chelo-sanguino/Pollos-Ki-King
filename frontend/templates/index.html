@@ -555,15 +555,12 @@
                     🍗 Menú de Productos
                 </div>
 
-                <div class="d-flex gap-2 overflow-auto pb-3 mb-4" id="filtro-categorias">
+                <div class="d-flex gap-2 overflow-auto py-2 mb-3 sticky-top" id="filtro-categorias" style="top: 80px; z-index: 1020; background-color: var(--hb-black);">
                     <button class="btn btn-yellow btn-sm active" onclick="filtrarProductos('Todas')">Todas</button>
                     <button class="btn btn-outline-warning btn-sm" onclick="filtrarProductos('Pollos')">Pollos</button>
                     <button class="btn btn-outline-warning btn-sm" onclick="filtrarProductos('Alitas')">Alitas</button>
-                    <button class="btn btn-outline-warning btn-sm"
-                        onclick="filtrarProductos('Porciones')">Porciones</button>
-                    <button class="btn btn-outline-warning btn-sm"
-                        onclick="filtrarProductos('Bebidas')">Bebidas</button>
-
+                    <button class="btn btn-outline-warning btn-sm" onclick="filtrarProductos('Porciones')">Porciones</button>
+                    <button class="btn btn-outline-warning btn-sm" onclick="filtrarProductos('Bebidas')">Bebidas</button>
                 </div>
 
                 <div class="row g-3" id="contenedor-productos">
