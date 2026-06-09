@@ -111,11 +111,9 @@ def nueva_venta():
 def imprimir_ticket(venta_id):
     venta = Venta.query.get(venta_id)
     if not venta:
-        return jsonify({"error": "Venta no encontrada"}), 404
-
-    ancho = 48 * mm
-    alto_cliente = (55 + (len(venta.detalles) * 6)) * mm 
-    alto_cocina = (22 + (len(venta.detalles) * 6)) * mm 
+        return jsonify({"error": "Venta no encontrada"}), 40    ancho = 58 * mm
+    alto_cliente = max(60, 65 + (len(venta.detalles) * 8)) * mm 
+    alto_cocina = max(55, 30 + (len(venta.detalles) * 8)) * mm 
     
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer)
@@ -127,7 +125,7 @@ def imprimir_ticket(venta_id):
     c.setPageSize((ancho, alto_cocina))
     dibujar_contenido_ticket(c, venta, ancho, alto_cocina, modo="cocina")
     c.showPage() 
-
+    
     c.save()
     buffer.seek(0)
     return send_file(buffer, as_attachment=False, mimetype='application/pdf')
@@ -141,98 +139,95 @@ def dibujar_contenido_ticket(c, venta, ancho, alto, modo="cliente"):
         # LOGO
         logo_path = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'static', 'img', 'Logo-kiking-BlancoNegro.png')
         if os.path.exists(logo_path):
-            logo_size = 20 * mm
+            logo_size = 22 * mm
             c.drawImage(logo_path, (ancho - logo_size) / 2, y - logo_size + 4*mm, width=logo_size, height=logo_size, mask='auto')
             y -= (logo_size + 1*mm)
 
     titulo = "POLLOS KI-KIN" if modo == "cliente" else "--- COCINA ---"
-    c.setFont("Helvetica-Bold", 9 if modo == "cocina" else 8)
+    c.setFont("Helvetica-Bold", 10 if modo == "cocina" else 9)
     c.drawCentredString(ancho/2, y, titulo)
     
-    y -= 3 * mm
+    y -= 3.5 * mm
     
     if modo == "cocina":
-        c.setFont("Helvetica", 7)
+        c.setFont("Helvetica", 8)
         c.drawCentredString(ancho/2, y, "[ ] DELIVERY  [ ] LLEVAR  [ ] LOCAL")
-        y -= 3 * mm
+        y -= 3.5 * mm
 
-    c.setFont("Helvetica-Bold", 8 if modo == "cocina" else 6)
+    c.setFont("Helvetica-Bold", 9 if modo == "cocina" else 8)
     c.drawCentredString(ancho/2, y, f"Ticket Nro: {venta.numero_pedido}")
     
-    y -= 3 * mm
+    y -= 3.5 * mm
 
-    c.setFont("Helvetica", 6)
-    c.drawString(2 * mm, y, f"Fecha: {venta.fecha_hora.strftime('%d/%m/%Y %H:%M')}")
-    y -= 2.5 * mm
-    c.drawString(2 * mm, y, "-" * 40)
+    c.setFont("Helvetica", 7)
+    c.drawString(5 * mm, y, f"Fecha: {venta.fecha_hora.strftime('%d/%m/%Y %H:%M')}")
     y -= 3 * mm
+    c.drawString(5 * mm, y, "-" * 32)
+    y -= 3.5 * mm
 
     for detalle in venta.detalles:
         prod = Producto.query.get(detalle.producto_id)
         
         texto_prod = f"{detalle.cantidad} {prod.nombre}"
         fuente_p = "Helvetica-Bold"
-        # MEJORA: Letra mini para ahorrar papel
-        tamano_p = 8 if modo == "cocina" else 7
+        tamano_p = 9 if modo == "cocina" else 8
         
-        ancho_texto = ancho - (18 * mm if modo == "cliente" else 4 * mm)
+        ancho_texto = ancho - (22 * mm if modo == "cliente" else 10 * mm)
         lineas = simpleSplit(texto_prod, fuente_p, tamano_p, ancho_texto)
         
         y_ini = y
         for linea in lineas:
             c.setFont(fuente_p, tamano_p)
-            c.drawString(2 * mm, y, linea)
-            y -= 3 * mm
+            c.drawString(5 * mm, y, linea)
+            y -= 3.5 * mm
 
         if modo == "cliente":
-            c.setFont("Helvetica-Bold", 7)
-            # MEJORA: Alineación exacta del subtotal
-            c.drawRightString(ancho - 2 * mm, y_ini, f"{detalle.subtotal:.2f}")
+            c.setFont("Helvetica-Bold", 8)
+            c.drawRightString(ancho - 5 * mm, y_ini, f"{detalle.subtotal:.2f}")
 
         # Salsas y Extras
         if detalle.extras:
             y -= 1 * mm
             for extra in detalle.extras:
-                c.setFont("Helvetica-Oblique", 6)
+                c.setFont("Helvetica-Oblique", 7)
                 c.drawString(8 * mm, y, f"+ {extra.nombre}")
-                y -= 2.5 * mm
+                y -= 3 * mm
             
         # Observaciones
         if detalle.observaciones:
-            c.setFont("Helvetica-BoldOblique", 6)
-            # Resaltamos visualmente la nota para el chef
+            c.setFont("Helvetica-BoldOblique", 7)
             c.drawString(8 * mm, y, f"NOTA: {detalle.observaciones}")
-            y -= 3 * mm
+            y -= 3.5 * mm
         
-        y -= 2.5 * mm # Espacio extra entre productos distintos
+        y -= 3 * mm
 
     # Pie del Ticket
     if modo == "cliente":
-        c.drawString(2 * mm, y, "=" * 40)
-        y -= 3 * mm
-        c.setFont("Helvetica-Bold", 9) 
-        c.drawString(2 * mm, y, "TOTAL:")
-        c.drawRightString(ancho - 2 * mm, y, f"{venta.total:.2f} Bs.")
+        c.drawString(5 * mm, y, "=" * 32)
+        y -= 3.5 * mm
+        c.setFont("Helvetica-Bold", 10) 
+        c.drawString(5 * mm, y, "TOTAL:")
+        c.drawRightString(ancho - 5 * mm, y, f"{venta.total:.2f} Bs.")
         
         # --- NUEVO: IMPRIMIR EL MÉTODO DE PAGO ---
-        y -= 3 * mm
-        c.setFont("Helvetica-Bold", 6)
-        c.drawString(2 * mm, y, f"PAGO: {venta.metodo_pago.upper()}")
-        y -= 3 * mm
-        c.setFont("Helvetica", 6)
+        y -= 3.5 * mm
+        c.setFont("Helvetica-Bold", 7)
+        c.drawString(5 * mm, y, f"PAGO: {venta.metodo_pago.upper()}")
+        y -= 3.5 * mm
+        c.setFont("Helvetica", 7)
         c.drawCentredString(ancho/2, y, "Av Gamoneda No1559 entre")
-        y -= 2.5 * mm
+        y -= 3 * mm
         c.drawCentredString(ancho/2, y, "Av. Circunvalación y C/Arturo Molina")
         y -= 3 * mm
-        c.setFont("Helvetica-Bold", 6)
+        c.setFont("Helvetica-Bold", 7)
         c.drawCentredString(ancho/2, y, "Pedidos: 70231349")
-        y -= 3.5 * mm
-        c.setFont("Helvetica-Oblique", 6)
+        y -= 4 * mm
+        c.setFont("Helvetica-Oblique", 7)
         c.drawCentredString(ancho/2, y, "¡Gracias por su preferencia!")
     else:
-        y -= 5 * mm
-        c.setFont("Helvetica-Bold", 7)
-        c.drawCentredString(ancho/2, y, "--- FIN DE ORDEN ---")
+        y -= 6 * mm
+        c.setFont("Helvetica-Bold", 8)
+        c.drawCentredString(ancho/2, y, "--- FIN DE ORDEN ---")DEN ---")
 
 @api_bp.route('/stats/mensual', methods=['GET'])
 def estadisticas_mensuales():
