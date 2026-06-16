@@ -183,15 +183,25 @@
                     </div>
                     <div class="card-body">
                         <div class="row text-center">
-                            <div class="col-md-6 border-end border-secondary">
-                                <h5 class="text-white">Presas Crudas</h5>
-                                <h2 class="text-warning fw-bold" id="inv-crudas">0</h2>
-                                <button class="btn btn-sm btn-outline-warning mt-2 fw-bold" onclick="abrirModalCrudo()">+ Ingresar Crudo</button>
+                            <div class="col-md-4 border-end border-secondary">
+                                <h5 class="text-white">🐔 Pollos Crudos</h5>
+                                <h2 class="text-warning fw-bold" id="inv-pollos-crudos">0</h2>
+                                <button class="btn btn-sm btn-outline-warning mt-2 fw-bold" onclick="abrirModalCrudo()">+ Ingresar Crudos</button>
                             </div>
-                            <div class="col-md-6">
-                                <h5 class="text-white">Presas Cocidas (Listas para Venta)</h5>
-                                <h2 class="text-success fw-bold" id="inv-cocidas">0</h2>
-                                <button class="btn btn-sm btn-warning mt-2 fw-bold text-dark" onclick="abrirModalCocinar()">🔥 Cocinar Presas</button>
+                            <div class="col-md-4 border-end border-secondary">
+                                <h5 class="text-white">🔥 Pollos Cocinados Hoy</h5>
+                                <h2 class="text-danger fw-bold" id="inv-pollos-cocidos-turno">0</h2>
+                                <button class="btn btn-sm btn-warning mt-2 fw-bold text-dark" onclick="abrirModalCocinar()">👨‍🍳 Cocinar Pollos</button>
+                                <br><small class="text-muted">(Se reinicia al cerrar caja)</small>
+                            </div>
+                            <div class="col-md-4">
+                                <h5 class="text-white">🍗 Presas Disponibles</h5>
+                                <div class="row text-start ps-3 pt-2">
+                                    <div class="col-6 text-warning"><span class="text-success fw-bold" id="inv-alas">0</span> Alas</div>
+                                    <div class="col-6 text-warning"><span class="text-success fw-bold" id="inv-pechos">0</span> Pechos</div>
+                                    <div class="col-6 text-warning"><span class="text-success fw-bold" id="inv-contras">0</span> Contras</div>
+                                    <div class="col-6 text-warning"><span class="text-success fw-bold" id="inv-piernas">0</span> Piernas</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -289,10 +299,21 @@
                         <label class="text-warning">Stock Actual:</label>
                         <input type="number" id="prod-stock" class="form-control bg-dark text-white border-secondary" value="0">
                     </div>
-                    <div class="mb-3 border-top border-secondary pt-3">
-                        <label class="text-warning">Presas Cocidas que requiere (Para Pollos):</label>
-                        <input type="number" id="prod-presas" class="form-control bg-dark text-white border-secondary" value="0">
-                        <small class="text-muted">Ej: Cuarto = 1, Medio = 2, Entero = 4</small>
+                    <div class="mb-3 border-top border-secondary pt-3" id="div-tipo-presa" style="display: none;">
+                        <label class="text-warning">Composición Exacta de Presas (Si es pollo):</label>
+                        <select id="prod-tipo-presa" class="form-control bg-dark text-white border-secondary">
+                            <option value="">No descuenta presas específicas</option>
+                            <option value="Ala">Ala (1 Ala)</option>
+                            <option value="Pierna">Pierna (1 Pierna)</option>
+                            <option value="Contra">Contra (1 Contra)</option>
+                            <option value="Pecho">Pecho (1 Pecho)</option>
+                            <option value="Pierna con Ala">Pierna con Ala (1 Ala, 1 Pierna)</option>
+                            <option value="Cuarto de Contra">Cuarto de Contra (1 Contra, 1 Pierna)</option>
+                            <option value="Cuarto de Pecho">Cuarto de Pecho (1 Pecho, 1 Ala)</option>
+                            <option value="Medio Pollo">Medio Pollo (1 de cada)</option>
+                            <option value="Pollo Entero">Pollo Entero (2 de cada)</option>
+                        </select>
+                        <small class="text-muted">Descontará exactamente las piezas indicadas de los pollos cocidos.</small>
                     </div>
                 </div>
                 <div class="modal-footer border-warning">
@@ -379,13 +400,13 @@
         <div class="modal-dialog">
             <div class="modal-content bg-dark border-warning">
                 <div class="modal-header border-warning">
-                    <h5 class="modal-title text-warning">Cocinar Presas</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title text-warning" id="modalCocinarLabel">👨‍🍳 Cocinar Pollos</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="text-warning">Cantidad de presas a cocinar:</label>
-                        <input type="number" id="inv-cantidad-cocinar" class="form-control bg-dark text-white border-secondary" min="1">
+                        <label class="text-white">Cantidad de Pollos Crudos a Cocinar:</label>
+                        <input type="number" id="inv-cantidad-cocinar" class="form-control bg-dark text-white border-secondary" placeholder="Ej: 5">
                     </div>
                 </div>
                 <div class="modal-footer border-warning">

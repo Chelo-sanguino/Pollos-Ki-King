@@ -18,11 +18,18 @@ class Producto(db.Model):
     usa_stock = db.Column(db.Boolean, default=False)
     stock_actual = db.Column(db.Integer, default=0)
     presas_requeridas = db.Column(db.Integer, default=0)
+    tipo_presa_pollo = db.Column(db.String(50), nullable=True) # "Ala", "Pierna", "Pierna con Ala", etc.
 
 class InventarioPollo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     presas_crudas = db.Column(db.Integer, default=0)
     presas_cocidas = db.Column(db.Integer, default=0)
+    pollos_crudos = db.Column(db.Integer, default=0)
+    pollos_cocidos_turno = db.Column(db.Integer, default=0)
+    alas_cocidas = db.Column(db.Integer, default=0)
+    pechos_cocidos = db.Column(db.Integer, default=0)
+    contras_cocidas = db.Column(db.Integer, default=0)
+    piernas_cocidas = db.Column(db.Integer, default=0)
 
 class Extra(db.Model):
     id = db.Column(db.Integer, primary_key=True)

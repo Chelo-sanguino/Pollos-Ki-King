@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from models import db, Caja, Producto, Venta, DetalleVenta, Extra, InventarioPollo
+from inventario_logic import cocinar_pollo, descontar_presas_venta, COMPOSICION_PRODUCTOS
 from datetime import datetime, timedelta
 from sqlalchemy import func, extract
 from flask import send_file
@@ -70,9 +71,14 @@ def nueva_venta():
             continue
 
         # Descontar stock
-        if prod.usa_stock:
+        if prod.usa_stock and not getattr(prod, 'tipo_presa_pollo', None):
             prod.stock_actual -= item['cantidad']
-        if prod.presas_requeridas > 0 and inventario:
+        if getattr(prod, 'tipo_presa_pollo', None) and inventario:
+            exito, msj = descontar_presas_venta(inventario, prod.tipo_presa_pollo, item['cantidad'])
+            if not exito:
+                db.session.rollback()
+                return jsonify({"error": f"Error en producto {prod.nombre}: {msj}"}), 400
+        elif prod.presas_requeridas > 0 and inventario:
             inventario.presas_cocidas -= (item['cantidad'] * prod.presas_requeridas)
 
         precio_unitario_final = prod.precio_base
@@ -113,9 +119,47 @@ def imprimir_ticket(venta_id):
     if not venta:
         return jsonify({"error": "Venta no encontrada"}), 404
 
+    from reportlab.lib.utils import simpleSplit
     ancho = 58 * mm
-    alto_cliente = max(65, 65 + (len(venta.detalles) * 8)) * mm 
-    alto_cocina = max(65, 30 + (len(venta.detalles) * 8)) * mm 
+    
+    def calcular_alto_exacto(venta, modo="cliente"):
+        h = 2 * mm # margen superior
+        if modo == "cliente":
+            h += 23 * mm # logo
+        
+        h += 3.5 * mm # titulo
+        if modo == "cocina":
+            h += 3.5 * mm # delivery
+            
+        h += 3.5 * mm # ticket
+        h += 3 * mm # fecha
+        h += 3.5 * mm # separador
+        
+        for detalle in venta.detalles:
+            prod = Producto.query.get(detalle.producto_id)
+            texto_prod = f"{detalle.cantidad} {prod.nombre}"
+            fuente_p = "Helvetica-Bold"
+            tamano_p = 9 if modo == "cocina" else 8
+            ancho_texto = ancho - (22 * mm if modo == "cliente" else 10 * mm)
+            lineas = simpleSplit(texto_prod, fuente_p, tamano_p, ancho_texto)
+            
+            h += len(lineas) * 3.5 * mm
+            if detalle.extras:
+                h += 1 * mm + (len(detalle.extras) * 3 * mm)
+            if detalle.observaciones:
+                h += 3.5 * mm
+            h += 3 * mm
+            
+        if modo == "cliente":
+            h += 3.5 * mm + 3.5 * mm + 3.5 * mm + 3 * mm + 3 * mm + 4 * mm + 3.5 * mm
+        else:
+            h += 6 * mm + 3.5 * mm
+            
+        h += 5 * mm # margen inferior extra
+        return max(h, ancho + 1 * mm) # Asegurar que siempre sea vertical (alto > ancho)
+
+    alto_cliente = calcular_alto_exacto(venta, "cliente")
+    alto_cocina = calcular_alto_exacto(venta, "cocina")
     
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer)
@@ -264,15 +308,39 @@ def estadisticas_mensuales():
 def listar_productos():
     # Filtrar para que solo devuelva los que tienen activo=True
     productos = Producto.query.filter_by(activo=True).all()
-    return jsonify([{
-        "id": p.id,
-        "nombre": p.nombre,
-        "precio": p.precio_base,
-        "categoria": p.categoria,
-        "usa_stock": p.usa_stock,
-        "stock_actual": p.stock_actual,
-        "presas_requeridas": p.presas_requeridas
-    } for p in productos])
+    inventario = InventarioPollo.query.first()
+    
+    resultado = []
+    for p in productos:
+        # Calcular stock dinámico si es pollo
+        stock_mostrar = p.stock_actual
+        usa_stock_mostrar = p.usa_stock
+        
+        if p.tipo_presa_pollo and inventario:
+            usa_stock_mostrar = True  # Para que el frontend lo muestre como producto con stock
+            comp = COMPOSICION_PRODUCTOS.get(p.tipo_presa_pollo)
+            if comp:
+                max_posible = float('inf')
+                for pieza, req in comp.items():
+                    col_name = "pechos_cocidos" if pieza == "pechos" else f"{pieza}_cocidas"
+                    disp = getattr(inventario, col_name, 0)
+                    if req > 0:
+                        max_posible = min(max_posible, disp // req)
+                stock_mostrar = max_posible if max_posible != float('inf') else 0
+            else:
+                stock_mostrar = 0
+                
+        resultado.append({
+            "id": p.id,
+            "nombre": p.nombre,
+            "precio": p.precio_base,
+            "categoria": p.categoria,
+            "usa_stock": usa_stock_mostrar,
+            "stock_actual": stock_mostrar,
+            "presas_requeridas": p.presas_requeridas,
+            "tipo_presa_pollo": p.tipo_presa_pollo
+        })
+    return jsonify(resultado)
 
 @api_bp.route('/productos', methods=['POST'])
 def crear_producto():
@@ -283,7 +351,8 @@ def crear_producto():
         categoria=datos.get('categoria', 'Varios'),
         usa_stock=datos.get('usa_stock', False),
         stock_actual=datos.get('stock_actual', 0),
-        presas_requeridas=datos.get('presas_requeridas', 0)
+        presas_requeridas=datos.get('presas_requeridas', 0),
+        tipo_presa_pollo=datos.get('tipo_presa_pollo')
     )
     db.session.add(nuevo)
     db.session.commit()
@@ -303,6 +372,7 @@ def actualizar_producto(id):
     if 'usa_stock' in datos: producto.usa_stock = datos['usa_stock']
     if 'stock_actual' in datos: producto.stock_actual = int(datos['stock_actual'])
     if 'presas_requeridas' in datos: producto.presas_requeridas = int(datos['presas_requeridas'])
+    if 'tipo_presa_pollo' in datos: producto.tipo_presa_pollo = datos['tipo_presa_pollo']
     
     db.session.commit()
     return jsonify({"mensaje": "Producto actualizado correctamente"})
@@ -400,6 +470,17 @@ def cerrar_caja():
     # 2. Cerramos la caja
     caja.estado = 'Cerrada'
     caja.fecha_cierre = datetime.now()
+    
+    # 3. Reiniciar el inventario de presas cocidas
+    inventario = InventarioPollo.query.first()
+    if inventario:
+        inventario.presas_cocidas = 0
+        inventario.pollos_cocidos_turno = 0
+        inventario.alas_cocidas = 0
+        inventario.pechos_cocidos = 0
+        inventario.contras_cocidas = 0
+        inventario.piernas_cocidas = 0
+
     # Guardamos el desglose en un campo de notas o similar si tu modelo lo permite
     db.session.commit()
 
@@ -733,8 +814,14 @@ def estado_inventario_pollo():
         db.session.add(inventario)
         db.session.commit()
     return jsonify({
-        "presas_crudas": inventario.presas_crudas,
-        "presas_cocidas": inventario.presas_cocidas
+        "presas_crudas": getattr(inventario, 'pollos_crudos', inventario.presas_crudas),
+        "presas_cocidas": inventario.presas_cocidas,
+        "pollos_crudos": getattr(inventario, 'pollos_crudos', 0),
+        "pollos_cocidos_turno": getattr(inventario, 'pollos_cocidos_turno', 0),
+        "alas_cocidas": getattr(inventario, 'alas_cocidas', 0),
+        "pechos_cocidos": getattr(inventario, 'pechos_cocidos', 0),
+        "contras_cocidas": getattr(inventario, 'contras_cocidas', 0),
+        "piernas_cocidas": getattr(inventario, 'piernas_cocidas', 0),
     })
 
 @api_bp.route('/inventario/pollo/ingresar_crudo', methods=['POST'])
@@ -746,6 +833,8 @@ def ingresar_crudo():
         inventario = InventarioPollo(presas_crudas=0, presas_cocidas=0)
         db.session.add(inventario)
     inventario.presas_crudas += cantidad
+    if hasattr(inventario, 'pollos_crudos'):
+        inventario.pollos_crudos += cantidad
     db.session.commit()
     return jsonify({"mensaje": "Presas crudas ingresadas con éxito"})
 
@@ -758,7 +847,13 @@ def cocinar_presas():
         inventario = InventarioPollo(presas_crudas=0, presas_cocidas=0)
         db.session.add(inventario)
     
+    exito, msj = cocinar_pollo(inventario, cantidad)
+    if not exito:
+        return jsonify({"error": msj}), 400
+        
+    # Compatibilidad con lo viejo
     inventario.presas_crudas -= cantidad
     inventario.presas_cocidas += cantidad
+    
     db.session.commit()
     return jsonify({"mensaje": "Presas cocinadas con éxito"})

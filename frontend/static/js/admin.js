@@ -21,19 +21,49 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // 2. Función Maestra para el Botón "+ Nuevo Producto" y "Editar"
-function abrirModal(id = null, nombre = '', categoria = '', precio = '', usa_stock = false, stock = 0, presas = 0) {
+function abrirModal(id = null, nombre = '', categoria = '', precio = '', usa_stock = false, stock = 0, presas = 0, tipo_presa_pollo = '') {
     document.getElementById('prod-id').value = id || '';
     document.getElementById('prod-nombre').value = nombre;
-    document.getElementById('prod-categoria').value = categoria || 'Hamburguesas';
+    document.getElementById('prod-categoria').value = categoria || 'Pollos';
     document.getElementById('prod-precio').value = precio;
     document.getElementById('prod-usa-stock').checked = usa_stock;
     document.getElementById('prod-stock').value = stock;
-    document.getElementById('prod-presas').value = presas;
+    document.getElementById('prod-tipo-presa').value = tipo_presa_pollo || '';
 
     document.getElementById('tituloModal').innerText = id ? '✏️ Editar Producto' : '🍔 Nuevo Producto';
 
+    toggleTipoPresa();
     modalInstancia.show();
 }
+
+function toggleTipoPresa() {
+    const cat = document.getElementById('prod-categoria').value;
+    const divTipoPresa = document.getElementById('div-tipo-presa');
+    const divUsaStock = document.getElementById('prod-usa-stock').closest('.form-check');
+    const divStockAct = document.getElementById('prod-stock').closest('.mb-3');
+    
+    if (cat === 'Pollos') {
+        divTipoPresa.style.display = 'block';
+        // Pollos no usan el stock tradicional, usan inventario centralizado
+        if(divUsaStock) divUsaStock.style.display = 'none';
+        if(divStockAct) divStockAct.style.display = 'none';
+        document.getElementById('prod-usa-stock').checked = false;
+        document.getElementById('prod-stock').value = 0;
+    } else {
+        divTipoPresa.style.display = 'none';
+        document.getElementById('prod-tipo-presa').value = '';
+        if(divUsaStock) divUsaStock.style.display = 'block';
+        if(divStockAct) divStockAct.style.display = 'block';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Escuchar cambios en la categoría
+    const selCat = document.getElementById('prod-categoria');
+    if(selCat) {
+        selCat.addEventListener('change', toggleTipoPresa);
+    }
+});
 
 // 3. Guardar Cambios (Crea o Edita)
 async function guardarProducto() {
@@ -44,7 +74,7 @@ async function guardarProducto() {
         precio: parseFloat(document.getElementById('prod-precio').value),
         usa_stock: document.getElementById('prod-usa-stock').checked,
         stock_actual: parseInt(document.getElementById('prod-stock').value) || 0,
-        presas_requeridas: parseInt(document.getElementById('prod-presas').value) || 0
+        tipo_presa_pollo: document.getElementById('prod-tipo-presa').value
     };
 
     const url = id ? `/api/productos/${id}` : '/api/productos';
@@ -93,10 +123,10 @@ async function cargarListaAdmin() {
                 <td><span class="badge bg-secondary">${p.categoria}</span></td>
                 <td class="text-warning fw-bold">${p.precio.toFixed(2)} Bs.</td>
                 <td>${p.usa_stock ? `<span class="badge bg-info">${p.stock_actual}</span>` : '<span class="text-muted">-</span>'}</td>
-                <td>${p.presas_requeridas > 0 ? `<span class="badge bg-danger">${p.presas_requeridas}</span>` : '<span class="text-muted">-</span>'}</td>
+                <td>${p.tipo_presa_pollo ? `<span class="badge bg-danger">${p.tipo_presa_pollo}</span>` : '<span class="text-muted">-</span>'}</td>
                 <td>
                     <button class="btn btn-sm btn-outline-warning me-1" 
-                            onclick="abrirModal(${p.id}, '${p.nombre.replace(/'/g, "\\'")}', '${p.categoria}', ${p.precio}, ${p.usa_stock}, ${p.stock_actual || 0}, ${p.presas_requeridas || 0})">✏️</button>
+                            onclick="abrirModal(${p.id}, '${p.nombre.replace(/'/g, "\\'")}', '${p.categoria}', ${p.precio}, ${p.usa_stock}, ${p.stock_actual || 0}, 0, '${p.tipo_presa_pollo || ''}')">✏️</button>
                     <button class="btn btn-sm btn-outline-danger" 
                             onclick="eliminarProducto(${p.id})">🗑️</button>
                 </td>
@@ -308,8 +338,13 @@ async function cargarInventario() {
     const res = await fetch('/api/inventario/pollo');
     if (res.ok) {
         const data = await res.json();
-        document.getElementById('inv-crudas').innerText = data.presas_crudas;
-        document.getElementById('inv-cocidas').innerText = data.presas_cocidas;
+        document.getElementById('inv-pollos-crudos').innerText = data.pollos_crudos;
+        document.getElementById('inv-pollos-cocidos-turno').innerText = data.pollos_cocidos_turno;
+        
+        document.getElementById('inv-alas').innerText = data.alas_cocidas;
+        document.getElementById('inv-pechos').innerText = data.pechos_cocidos;
+        document.getElementById('inv-contras').innerText = data.contras_cocidas;
+        document.getElementById('inv-piernas').innerText = data.piernas_cocidas;
     }
 }
 
@@ -347,7 +382,7 @@ async function guardarIngresoCrudo() {
 
 async function guardarCocinar() {
     const cantidad = parseInt(document.getElementById('inv-cantidad-cocinar').value);
-    const actuales = parseInt(document.getElementById('inv-crudas').innerText);
+    const actuales = parseInt(document.getElementById('inv-pollos-crudos').innerText);
 
     if (!cantidad || cantidad <= 0) return;
     
