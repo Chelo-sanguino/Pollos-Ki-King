@@ -27,7 +27,9 @@ function abrirModal(id = null, nombre = '', categoria = '', precio = '', usa_sto
     document.getElementById('prod-categoria').value = categoria || 'Pollos';
     document.getElementById('prod-precio').value = precio;
     document.getElementById('prod-usa-stock').checked = usa_stock;
-    document.getElementById('prod-stock').value = stock;
+    const stockInput = document.getElementById('prod-stock');
+    stockInput.value = stock;
+    stockInput.min = id ? stock : 0; // Previene reducir stock manualmente
     document.getElementById('prod-tipo-presa').value = tipo_presa_pollo || '';
 
     document.getElementById('tituloModal').innerText = id ? '✏️ Editar Producto' : '🍔 Nuevo Producto';
@@ -68,12 +70,20 @@ document.addEventListener('DOMContentLoaded', () => {
 // 3. Guardar Cambios (Crea o Edita)
 async function guardarProducto() {
     const id = document.getElementById('prod-id').value;
+    const stockMin = parseInt(document.getElementById('prod-stock').min) || 0;
+    const stockActual = parseInt(document.getElementById('prod-stock').value) || 0;
+    
+    if (id && stockActual < stockMin) {
+        Swal.fire({icon: 'error', title: 'Error', text: 'No puedes descontar stock manualmente, solo aumentarlo. Para descontar, realiza una venta en Caja.', confirmButtonColor: '#FACC15'});
+        return;
+    }
+
     const datos = {
         nombre: document.getElementById('prod-nombre').value,
         categoria: document.getElementById('prod-categoria').value,
         precio: parseFloat(document.getElementById('prod-precio').value),
         usa_stock: document.getElementById('prod-usa-stock').checked,
-        stock_actual: parseInt(document.getElementById('prod-stock').value) || 0,
+        stock_actual: stockActual,
         tipo_presa_pollo: document.getElementById('prod-tipo-presa').value
     };
 

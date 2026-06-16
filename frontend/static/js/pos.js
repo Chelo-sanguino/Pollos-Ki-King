@@ -76,10 +76,6 @@ function renderizarProductos(lista) {
             <span class="fw-bold text-center text-warning" style="font-size: 0.85rem; line-height: 1.2; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${v.nombre.toUpperCase()}</span>
         `;
         
-        // Hover effect for better UX
-        div.onmouseover = () => { div.style.background = '#FACC15'; div.querySelector('.text-warning').classList.replace('text-warning', 'text-dark'); };
-        div.onmouseout = () => { div.style.background = '#1A1A1A'; div.querySelector('.text-dark').classList.replace('text-dark', 'text-warning'); };
-
         gridContainer.appendChild(div);
     });
 
