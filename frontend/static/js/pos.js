@@ -62,8 +62,8 @@ function renderizarProductos(lista) {
 
     lista.forEach(v => {
         const div = document.createElement('div');
-        div.className = 'btn btn-outline-light p-2 d-flex align-items-center justify-content-center';
-        div.style.cssText = 'border-color: #242424; position: relative; height: 75px; border-radius: 8px; cursor: pointer; background: #1A1A1A; transition: all 0.2s;';
+        div.className = 'pos-product-btn p-2 d-flex flex-column align-items-center justify-content-center';
+        div.style.cssText = 'position: relative; height: 100px; width: 100%;';
         div.onclick = () => agregarAlCarrito(v.id, v.nombre, v.precio, v.categoria);
 
         let stockHtml = '';
@@ -73,7 +73,8 @@ function renderizarProductos(lista) {
 
         div.innerHTML = `
             ${stockHtml}
-            <span class="fw-bold text-center text-warning" style="font-size: 0.85rem; line-height: 1.2; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${v.nombre.toUpperCase()}</span>
+            <span class="fw-bold text-center text-warning mb-1" style="font-size: 0.85rem; line-height: 1.2; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${v.nombre.toUpperCase()}</span>
+            <span class="fw-bold text-white mt-1" style="font-size: 0.9rem;">${v.precio.toFixed(2)} Bs.</span>
         `;
         
         gridContainer.appendChild(div);
