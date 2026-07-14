@@ -43,26 +43,26 @@ function toggleTipoPresa() {
     const divTipoPresa = document.getElementById('div-tipo-presa');
     const divUsaStock = document.getElementById('prod-usa-stock').closest('.form-check');
     const divStockAct = document.getElementById('prod-stock').closest('.mb-3');
-    
+
     if (cat === 'Pollos') {
         divTipoPresa.style.display = 'block';
         // Pollos no usan el stock tradicional, usan inventario centralizado
-        if(divUsaStock) divUsaStock.style.display = 'none';
-        if(divStockAct) divStockAct.style.display = 'none';
+        if (divUsaStock) divUsaStock.style.display = 'none';
+        if (divStockAct) divStockAct.style.display = 'none';
         document.getElementById('prod-usa-stock').checked = false;
         document.getElementById('prod-stock').value = 0;
     } else {
         divTipoPresa.style.display = 'none';
         document.getElementById('prod-tipo-presa').value = '';
-        if(divUsaStock) divUsaStock.style.display = 'block';
-        if(divStockAct) divStockAct.style.display = 'block';
+        if (divUsaStock) divUsaStock.style.display = 'block';
+        if (divStockAct) divStockAct.style.display = 'block';
     }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     // Escuchar cambios en la categoría
     const selCat = document.getElementById('prod-categoria');
-    if(selCat) {
+    if (selCat) {
         selCat.addEventListener('change', toggleTipoPresa);
     }
 });
@@ -70,11 +70,12 @@ document.addEventListener('DOMContentLoaded', () => {
 // 3. Guardar Cambios (Crea o Edita)
 async function guardarProducto() {
     const id = document.getElementById('prod-id').value;
+    const cat = document.getElementById('prod-categoria').value;
     const stockMin = parseInt(document.getElementById('prod-stock').min) || 0;
     const stockActual = parseInt(document.getElementById('prod-stock').value) || 0;
-    
-    if (id && stockActual < stockMin) {
-        Swal.fire({icon: 'error', title: 'Error', text: 'No puedes descontar stock manualmente, solo aumentarlo. Para descontar, realiza una venta en Caja.', confirmButtonColor: '#FACC15'});
+
+    if (id && stockActual < stockMin && cat !== 'Porciones' && cat !== 'Pollos') {
+        Swal.fire({ icon: 'error', title: 'Error', text: 'No puedes descontar stock manualmente, solo aumentarlo. Para descontar, realiza una venta en Caja.', confirmButtonColor: '#FACC15' });
         return;
     }
 
@@ -99,9 +100,9 @@ async function guardarProducto() {
     if (res.ok) {
         modalInstancia.hide();
         cargarListaAdmin();
-        Swal.fire({icon: 'success', title: '¡Éxito!', text: 'Operación exitosa', confirmButtonColor: '#FACC15'});
+        Swal.fire({ icon: 'success', title: '¡Éxito!', text: 'Operación exitosa', confirmButtonColor: '#FACC15' });
     } else {
-        Swal.fire({icon: 'error', title: 'Error', text: 'Error al procesar la solicitud', confirmButtonColor: '#FACC15'});
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Error al procesar la solicitud', confirmButtonColor: '#FACC15' });
     }
 }
 
@@ -156,7 +157,7 @@ async function eliminarProducto(id) {
         confirmButtonText: 'Sí, eliminar',
         cancelButtonText: 'Cancelar'
     });
-    
+
     if (!result.isConfirmed) return;
 
     try {
@@ -168,14 +169,14 @@ async function eliminarProducto(id) {
         const data = await res.json();
 
         if (res.ok) {
-            Swal.fire({icon: 'success', title: '¡Éxito!', text: "✅ " + data.mensaje, confirmButtonColor: '#FACC15'});
+            Swal.fire({ icon: 'success', title: '¡Éxito!', text: "✅ " + data.mensaje, confirmButtonColor: '#FACC15' });
             cargarListaAdmin();
         } else {
-            Swal.fire({icon: 'error', title: 'Error', text: "❌ Error: " + data.error, confirmButtonColor: '#FACC15'});
+            Swal.fire({ icon: 'error', title: 'Error', text: "❌ Error: " + data.error, confirmButtonColor: '#FACC15' });
         }
     } catch (error) {
         console.error("Error en la petición DELETE:", error);
-        Swal.fire({icon: 'error', title: 'Error', text: 'Hubo un error al conectar con el servidor.', confirmButtonColor: '#FACC15'});
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Hubo un error al conectar con el servidor.', confirmButtonColor: '#FACC15' });
     }
 }
 
@@ -191,7 +192,7 @@ async function ejecutarCierre() {
         confirmButtonText: 'Sí, cerrar caja',
         cancelButtonText: 'Cancelar'
     });
-    
+
     if (!result.isConfirmed) return;
 
     // 1. Abrimos la pestaña ANTES de hablar con el servidor (Evita el bloqueo)
@@ -208,7 +209,7 @@ async function ejecutarCierre() {
                 ventanaPDF.location.href = `/api/caja/ticket_cierre/${data.caja_id}`;
             } else {
                 ventanaPDF.close();
-                Swal.fire({icon: 'error', title: 'Error', text: "Error: El servidor no envió el ID de la caja.", confirmButtonColor: '#FACC15'});
+                Swal.fire({ icon: 'error', title: 'Error', text: "Error: El servidor no envió el ID de la caja.", confirmButtonColor: '#FACC15' });
             }
 
             // 3. Pequeña pausa para asegurar la carga, luego recargamos el panel
@@ -218,12 +219,12 @@ async function ejecutarCierre() {
 
         } else {
             ventanaPDF.close();
-            Swal.fire({icon: 'error', title: 'Error', text: data.error || "Error al cerrar la caja", confirmButtonColor: '#FACC15'});
+            Swal.fire({ icon: 'error', title: 'Error', text: data.error || "Error al cerrar la caja", confirmButtonColor: '#FACC15' });
         }
     } catch (error) {
         ventanaPDF.close();
         console.error(error);
-        Swal.fire({icon: 'error', title: 'Error', text: "Error de conexión con el servidor.", confirmButtonColor: '#FACC15'});
+        Swal.fire({ icon: 'error', title: 'Error', text: "Error de conexión con el servidor.", confirmButtonColor: '#FACC15' });
     }
 }
 
@@ -292,9 +293,9 @@ async function guardarExtra() {
     if (res.ok) {
         modalExtraInstancia.hide();
         cargarListaExtras();
-        Swal.fire({icon: 'success', title: '¡Éxito!', text: '¡Extra guardado con éxito!', confirmButtonColor: '#FACC15'});
+        Swal.fire({ icon: 'success', title: '¡Éxito!', text: '¡Extra guardado con éxito!', confirmButtonColor: '#FACC15' });
     } else {
-        Swal.fire({icon: 'error', title: 'Error', text: 'Error al procesar la solicitud', confirmButtonColor: '#FACC15'});
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Error al procesar la solicitud', confirmButtonColor: '#FACC15' });
     }
 }
 
@@ -321,14 +322,14 @@ async function eliminarExtra(id) {
         const data = await res.json();
 
         if (res.ok) {
-            Swal.fire({icon: 'success', title: '¡Éxito!', text: "✅ " + data.mensaje, confirmButtonColor: '#FACC15'});
+            Swal.fire({ icon: 'success', title: '¡Éxito!', text: "✅ " + data.mensaje, confirmButtonColor: '#FACC15' });
             cargarListaExtras();
         } else {
-            Swal.fire({icon: 'error', title: 'Error', text: "❌ Error: " + data.error, confirmButtonColor: '#FACC15'});
+            Swal.fire({ icon: 'error', title: 'Error', text: "❌ Error: " + data.error, confirmButtonColor: '#FACC15' });
         }
     } catch (error) {
         console.error("Error en la petición DELETE:", error);
-        Swal.fire({icon: 'error', title: 'Error', text: 'Hubo un error al conectar con el servidor.', confirmButtonColor: '#FACC15'});
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Hubo un error al conectar con el servidor.', confirmButtonColor: '#FACC15' });
     }
 }
 
@@ -350,7 +351,7 @@ async function cargarInventario() {
         const data = await res.json();
         document.getElementById('inv-pollos-crudos').innerText = data.pollos_crudos;
         document.getElementById('inv-pollos-cocidos-turno').innerText = data.pollos_cocidos_turno;
-        
+
         document.getElementById('inv-alas').innerText = data.alas_cocidas;
         document.getElementById('inv-pechos').innerText = data.pechos_cocidos;
         document.getElementById('inv-contras').innerText = data.contras_cocidas;
@@ -386,7 +387,7 @@ async function guardarIngresoCrudo() {
     if (res.ok) {
         modalCrudoInstancia.hide();
         cargarInventario();
-        Swal.fire({icon: 'success', title: '¡Éxito!', text: 'Presas ingresadas al inventario.', confirmButtonColor: '#FACC15'});
+        Swal.fire({ icon: 'success', title: '¡Éxito!', text: 'Presas ingresadas al inventario.', confirmButtonColor: '#FACC15' });
     }
 }
 
@@ -395,9 +396,9 @@ async function guardarCocinar() {
     const actuales = parseInt(document.getElementById('inv-pollos-crudos').innerText);
 
     if (!cantidad || cantidad <= 0) return;
-    
+
     if (cantidad > actuales) {
-        Swal.fire({icon: 'error', title: 'Stock Insuficiente', text: 'No tienes suficientes presas crudas.', confirmButtonColor: '#FACC15'});
+        Swal.fire({ icon: 'error', title: 'Stock Insuficiente', text: 'No tienes suficientes presas crudas.', confirmButtonColor: '#FACC15' });
         return;
     }
 
@@ -410,6 +411,6 @@ async function guardarCocinar() {
     if (res.ok) {
         modalCocinarInstancia.hide();
         cargarInventario();
-        Swal.fire({icon: 'success', title: '¡A cocinar!', text: 'Presas movidas a cocidas.', confirmButtonColor: '#FACC15'});
+        Swal.fire({ icon: 'success', title: '¡A cocinar!', text: 'Presas movidas a cocidas.', confirmButtonColor: '#FACC15' });
     }
 }
