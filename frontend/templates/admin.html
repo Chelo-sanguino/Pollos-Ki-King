@@ -133,14 +133,17 @@
             <span class="navbar-brand text-warning fw-bold">
                 <span class="me-2">🍗</span>⚙️ PANEL ADMINISTRATIVO
             </span>
-            <a href="/" class="btn btn-outline-warning btn-sm fw-bold">Volver al POS</a>
+            <div>
+                <button id="btn-acceso-dueno" class="btn btn-outline-danger btn-sm fw-bold me-2" onclick="solicitarAccesoDueno()">🔒 Acceso Dueño</button>
+                <a href="/" class="btn btn-outline-warning btn-sm fw-bold">Volver al POS</a>
+            </div>
         </div>
     </nav>
 
     <div class="container pb-5">
         <div class="row g-4">
 
-            <div class="col-12">
+            <div class="col-12 dueno-only" style="display: none;">
                 <div class="card shadow-lg text-center border-0 py-4">
                     <div class="card-body">
                         <h5 class="text-uppercase fw-bold mb-3" style="letter-spacing: 2px; color: var(--hb-yellow);">💰
@@ -153,7 +156,7 @@
                 </div>
             </div>
 
-            <div class="col-md-6">
+            <div class="col-md-6 dueno-only" style="display: none;">
                 <div class="card h-100 shadow border-star">
                     <div class="card-header text-center">🔥 Producto Estrella</div>
                     <div class="card-body text-center d-flex flex-column justify-content-center py-4">
@@ -164,7 +167,7 @@
                 </div>
             </div>
 
-            <div class="col-md-6">
+            <div class="col-md-6 dueno-only" style="display: none;">
                 <div class="card h-100 shadow border-ice">
                     <div class="card-header bg-secondary text-white border-0 text-center">❄️ Bajo Rendimiento</div>
                     <div class="card-body text-center d-flex flex-column justify-content-center py-4">
@@ -359,11 +362,11 @@
             <p class="text-white">Imprime un resumen de los productos vendidos hoy, o cierra la caja definitivamente.
             </p>
 
-            <button class="btn btn-info w-100 fw-bold mb-3 text-dark" onclick="imprimirReporteProductos()">
+            <button class="btn btn-info w-100 fw-bold mb-3 text-dark dueno-only" style="display: none;" onclick="imprimirReporteProductos()">
                 📄 IMPRIMIR REPORTE DE PRODUCTOS (HOY)
             </button>
 
-            <button class="btn btn-info w-100 fw-bold mb-3 text-dark" onclick="imprimirReporteMensualProductos()">
+            <button class="btn btn-info w-100 fw-bold mb-3 text-dark dueno-only" style="display: none;" onclick="imprimirReporteMensualProductos()">
                 📊 IMPRIMIR REPORTE MENSUAL (PRODUCTOS)
             </button>
 

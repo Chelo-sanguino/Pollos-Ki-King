@@ -414,3 +414,45 @@ async function guardarCocinar() {
         Swal.fire({ icon: 'success', title: '¡A cocinar!', text: 'Presas movidas a cocidas.', confirmButtonColor: '#FACC15' });
     }
 }
+
+async function solicitarAccesoDueno() {
+    const { value: pin } = await Swal.fire({
+        title: 'Acceso Restringido',
+        input: 'password',
+        inputLabel: 'Introduce el PIN de Dueño',
+        inputPlaceholder: 'Ingresa tu PIN',
+        inputAttributes: {
+            autocapitalize: 'off',
+            autocorrect: 'off'
+        },
+        showCancelButton: true,
+        confirmButtonColor: '#FACC15',
+        confirmButtonText: 'Desbloquear',
+        cancelButtonText: 'Cancelar'
+    });
+
+    if (pin) {
+        if (pin === '10540269') {
+            Swal.fire({
+                icon: 'success',
+                title: 'Acceso Concedido',
+                text: 'Bienvenido. Tienes acceso completo a las métricas y gestión de productos.',
+                timer: 1500,
+                showConfirmButton: false
+            });
+            
+            // Ocultar botón de acceso y mostrar secciones ocultas
+            document.getElementById('btn-acceso-dueno').style.display = 'none';
+            const secciones = document.querySelectorAll('.dueno-only');
+            secciones.forEach(sec => {
+                sec.style.display = 'block'; // o 'flex' dependiendo del grid, pero 'block' suele funcionar bien en las cards y columnas
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'PIN Incorrecto',
+                text: 'No tienes permiso para ver esta sección.'
+            });
+        }
+    }
+}
